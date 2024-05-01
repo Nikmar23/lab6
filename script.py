@@ -4,7 +4,7 @@ conn = psycopg2.connect("dbname=test user=postgres password=example")
 
 cur = conn.cursor()
 
-# Create tables
+# Створюємо таблиці
 cur.execute("""
 CREATE TABLE Errors (
     ErrorCode serial PRIMARY KEY,
@@ -36,7 +36,7 @@ CREATE TABLE ErrorFixes (
 );
 """)
 
-# Display all critical errors. Sort by error code;
+# Відображаємо всі критичні помилки. Сортуємо за кодом помилки;
 cur.execute("""
 SELECT * 
 FROM Errors 
@@ -44,20 +44,20 @@ WHERE ErrorLevel = 'Critical'
 ORDER BY ErrorCode;
 """)
 
-# Count the number of errors of each level (summary query);
+# Рахуємо кількість помилок кожного рівня (підсумковий запит);
 cur.execute("""
 SELECT ErrorLevel, COUNT(*) 
 FROM Errors 
 GROUP BY ErrorLevel;
 """)
 
-# Calculate the cost of a programmer's work when fixing each error (query with a calculated field);
+# Розраховуємо вартість роботи програміста при виправленні кожної помилки (запит з обчислювальним полем);
 cur.execute("""
 SELECT ef.FixCode, ef.ErrorCode, ef.ProgrammerCode, (ef.Duration * ef.DailyCost) as TotalCost 
 FROM ErrorFixes ef;
 """)
 
-# Display all errors that came from a given source (query with a parameter);
+# Відображаємо всі помилки, що надійшли з заданого джерела (запит з параметром);
 source_type = 'User' 
 cur.execute("""
 SELECT * 
@@ -65,7 +65,7 @@ FROM Errors
 WHERE Source = %s;
 """, (source_type,))
 
-# Count the number of errors that came from users and testers (summary query)
+# Рахуємо кількість помилок, що надійшли від користувачів та тестерів (підсумковий запит)
 cur.execute("""
 SELECT Source, COUNT(*) 
 FROM Errors 
@@ -73,7 +73,7 @@ WHERE Source IN ('User', 'Tester')
 GROUP BY Source;
 """)
 
-# Count the number of critical, important, minor errors fixed by each programmer (cross query);
+# Рахуємо кількість критичних, важливих, незначних помилок, виправлених кожним програмістом (перехресний запит);
 cur.execute("""
 SELECT p.ProgrammerCode, 
        COUNT(CASE WHEN e.ErrorLevel = 'Critical' THEN 1 END) as CriticalCount, 
